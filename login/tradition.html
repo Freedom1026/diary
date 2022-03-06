@@ -1,12 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LINE LOGIN</title>
+    <link rel="stylesheet" href="../css/layout.css">
 </head>
+
 <body>
-    
+    <h1>LINE LOGIN</h1>
+    <h2>說明：使自己的網站，可以取得經由LINE登入使用者的LINE資訊</h2>
+    <h3>呼叫方式屬於oauth2</h3>
+
+    <h4>LINE回應訊息列表（HTTP）</h4>
+    <ul>
+        <li>200：成功</li>
+        <li>400：錯誤，請檢查必填項目，或者JSON格式</li>
+        <li>401：請檢查標頭，有錯誤</li>
+        <li>403：你無權使用此API</li>
+        <li>413：請求內容太長（不該超過2MB）</li>
+        <li>429：請求次數已達上限</li>
+        <li>500：伺服器錯誤</li>
+    </ul>
+
+    <hr>
+    <h3>不依賴套件，自行撰寫呼叫程序</h3>
+    <h4>第一步：讓使用者跳轉至line登入畫面 </h4>
+    <pre>
+        * method : GET
+        * url : https://access.line.me/oauth2/v2.1/authorize
+        * required:
+        1. response_type
+        2. client_id
+        3. scope
+        4. redirect_uri
+        5. state</pre>
+    <div class="mainbox">
+        必填參數說明 : 為了讓使用者在登入後，能跳轉回指定畫面，需要帶以下參數
+        <br>
+        除了指定參數以外，點以下網址，可以看更多選填參數
+        <a
+            href="https://developers.line.biz/zh-hant/docs/line-login/integrate-line-login/#making-an-authorization-request">
+            選填參數
+        </a>
+        <ol>
+            <li>
+                response_type
+                <p><span class="red">必帶值 = code</span></p>
+            </li>
+            <li>client_id
+                <p>channel_ID (<a href="#">點我查看取得方式</a>)</p>
+            </li>
+            <li>scope
+                <p>想要取得的使用者資訊(有特定格式)
+                    <a
+                        href="https://developers.line.biz/zh-hant/docs/line-login/integrate-line-login/#scopes">點我查看詳細資訊</a>
+                </p>
+            </li>
+            <li>redirect_uri
+                <p>登入後使用者應該呼叫哪個API(handle事件)，需要事先設定<a href="#">點我查看如何設定</a></p>
+            </li>
+            <li>state
+                <p>隨機數字，僅用來讓呼叫的網站來進行驗證，一般帶網站隨機token</p>
+            </li>
+        </ol>
+        <strong>範例（以下是直接把參數放在網址）：<br>
+            https://access.line.me/oauth2/v2.1/authorize?response_type=<span class="red">code</span>
+            <br>&client_id=<span class="red">1234567890</span>
+            <br>&redirect_uri=<span class="red">https://mywebiste.com/handle</span>
+            <br>&state=<span class="red">12345</span>
+            <br>&scope=<span class="red">profile%20openid%20email</span></strong>
+    </div>
+    <h4>第二步：我方確認使用者以LINE登入，接收訊息並處理 </h4>
+    <pre>
+        * method : GET
+        * url : 這是我方自訂義的url被呼叫</pre>
+    <div class="mainbox">
+        注意，這時候僅得知使用者登入，<span class="red">不能獲得使用者資訊</span>，
+        所以不知道使用者是誰。所以收到之後，要馬上拿得到的code去換token。
+        <br>會回傳第一步時，由我方送出去的state，但驗證需要我方網站自己寫code驗證
+    </div>
+    <h4>第二點五步：在收到登入通知後，馬上呼叫LINE API</h4>
+    <pre>
+        * method : <span class="red">POST</span>
+        * url : https://api.line.me/v2/oauth/accessToken
+        * required:
+        1.Content-Type
+        2.grant_type
+        3.code
+        4.redirect_uri
+        5.client_id
+        6.client_secret</pre>
+    <div class="mainbox">
+        特別注意：<span class="red">不只data有指定，header也有指定</span>
+        <ol>
+            <li>Content-Type
+                <p><span class="red">於標頭內</span>值必須是application/x-www-form-urlencoded</p>
+            </li>
+            <li>grant_type
+                <p>值必須是authorization_code</p>
+            </li>
+            <li>code
+                <p>LINE呼叫時，會帶的值</p>
+            </li>
+            <li>redirect_uri
+                <p><span class="red">必須保持和第一步的redirect_uri一致</span>
+                    <br>請參照設定Channel內容
+                </p>
+            </li>
+            <li>client_id
+                <p>請參照設定Channel內容</p>
+            </li>
+            <li>client_secret
+                <p>請參照設定Channel內容</p>
+            </li>
+        </ol>
+        <strong>後端的呼叫程式碼，以下示例：</strong>
+    </div>
+    <pre>
+        public function line(<span class="red">$code</span> = '', <span class="red">$state</span> = '')
+    {
+            $url = 'https://api.line.me/oauth2/v2.1/token';
+            $data = [
+                'grant_type' => 'authorization_code',
+                'code' => <span class="red">$code</span>,
+                'redirect_uri' => 'https://mywebiste.com/handle/line',
+                'client_id' => '1234567898',
+                'client_secret' => 'abcdejk32323232kmk23j232km3k2323',
+                'state' => <span class="red">$state</span>
+            ];
+
+            $options = array(
+                'http' => array(
+                    'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                    'method'  => 'POST',
+                    'content' => http_build_query($data)
+                )
+            );
+            $context  = stream_context_create($options);
+            $result = file_get_contents($url, false, $context);
+
+            return dd(var_dump($result));
+    }
+    </pre>
+    <strong>
+        呼叫完API之後，會取得
+        <ul>
+            <li>access_token</li>
+            <li>expires_in</li>
+            <li>id_token</li>
+            <li>refresh_token</li>
+            <li>scope</li>
+            <li>token_type</li>
+        </ul>
+    </strong>
+    <div class="mainbox">
+        access_token和id_token：<br>
+        access_token像是車票，而id_token則是車票上指定的座位<br>
+        expires_in是到期時間<br>
+        車票到期，則座位自然也到期<br>
+        refresh_token是用來延長車票期限(另外的API)<br>
+        <br>
+        可以根據車票上座位，去找到該使用者，<br>
+        所以下一步就是以座位去找到指定使用者。
+    </div>
+    <h4>第三步：用ID_token換個資</h4>
+    <p>備註：有些教學是呼叫的API是https://api.line.me/v2/profile，但官方教學是以下面為主，
+        <br>以官方為準（因為LINE LOGIN有改版 怕教學是舊的 會不能用）
+    </p>
+    <pre>
+        * method : <span class="red">POST</span>
+        * url : https://api.line.me/oauth2/v2.1/verify
+        * required:
+        1. id_token
+    </pre>
+    <div class="mainbox">
+        參數說明：
+        <ol>
+            <li>id_token
+                <p>line回傳的id_token。</p>
+            </li>
+        </ol>
+        <strong>基本上，這邊會回傳所有我方可以取得的使用者資訊（大頭貼、email、用戶名）</strong>
+        <br>
+        另外回傳的其他參數，是怕有人自己手寫竄改座位號碼（比喻）
+        刻意回傳給我方，讓我方自行寫程式碼驗證這座位號是否正確。
+    </div>
+
+    <hr>
+
+    <h3>依賴套件程序：</h3>
+    <h4>此範例是安裝laravel的Socialite</h4>
+    <div class="mainbox">
+        官方預設安裝的Socialite並沒有LINE登入<br>
+        所以如果沒有需要facebook等其他預設的登入方式，<br>
+        可以透過以下的指令 只安裝line登入套件<br>
+    </div>
+    <pre>
+        composer require socialiteproviders/line
+        更多操作其實可以直接看<a href="https://socialiteproviders.com/Line/">Socialite的LINE教學頁面</a></pre>
+    <div class="mainbox">
+        後端處理
+    </div>
+    <pre>
+        // 在route部分
+        Route::get('/auth/{type}', [LoginPage::class, 'authpage'])->name('goToAuth');
+        Route::get('/handle/{auth}', [LoginPage::class, 'handle'])->name('handleAuth');
+
+        // 在controller部分
+        public function authpage($type)
+        {
+            return Socialite::driver('line')->redirect();
+        }
+        public function handle(Request $req, $auth)
+        {
+            <span class="red">//幾行code就可以取得使用者資料了</span>
+            $user = Socialite::driver('line')->user();
+        }
+
+    </pre>
+
+    <hr>
+    <h3>其他API</h3>
+    <p><a href="https://developers.line.biz/en/reference/line-login/#revoke-access-token">延長access_token期限</a></p>
+    <p><a href="https://developers.line.biz/en/reference/line-login/#verify-id-token">撤銷access_token</a></p>
 </body>
+
 </html>
