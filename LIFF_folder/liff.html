@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIFF</title>
+    <link rel="stylesheet" href="../css/layout.css">
+</head>
+
+<body>
+    <h1>LINE Front-end Framework</h1>
+    <h2>說明：簡稱LIFF，主要目的是讓我方可以在LINE的APP裡面，創造更多客製化的體驗</h2>
+    <h3>雖然LIFF在設定時，頁面被歸屬在LINE LOGIN的Channel，但LIFF不單單包含登入。</h3>
+
+    <h3>LIFF特色：</h3>
+    <ol>
+        <li>
+            <strong>執行容易</strong><br>
+            靜態網頁也能執行LIFF(只要一個html，不用apache就能執行)，<br>
+            不像LINE其他的API，需要透過Server。<br>
+            但也因為這樣，應該加上更嚴謹的驗證機制，<br>
+            否則資訊安全性會很差。
+        </li>
+        <li>
+            <strong>驗證機制</strong><br>
+            由於LIFF當初的開發目的，有一部分是為了「減少店家在LINE上宣傳的成本」。<br>
+            LINE想透過讓LINE店家只進行前端網頁開發，便能與客戶互動。<br>
+            進而達到LINE、店家、消費者，三方皆贏的場面。<br>
+            然而，因為想簡化整個流程，造成必須由店家在呼叫API時，<br>
+            自發的對使用者進行驗證。
+        </li>
+        <li>
+            <strong>單一入口</strong><br>
+            <span class="red">每個LIFF ID的入口必須是單一的，</span><br>
+            LIFF最初開發，是為了MINI APP，想以Web營造APP的效果，<br>
+            而APP無論何時打開，第一個畫面肯定是固定的載入畫面，<br>
+            除了營造APP般效果以外，也因為LIFF的登入功能不需要後端進行處理，<br>
+            造就弱資訊安全性，故而，在登入的時候，LINE會有強制清除原有參數的動作<br>
+            <span class="red">不要心存僥倖，試圖用一個LIFF ID做多入口</span><br>
+            這樣會造就後面很多的麻煩跟不確定性。<br>
+            而且LIFF相關API還有可能進行修改，舊的方式隨時有可能被取代。
+        </li>
+        <li>
+            <strong>可針對不同瀏覽器</strong><br>
+            LIFF的SDK裡面，有很多function可以判斷不同瀏覽器，<br>
+            但比較重要的，應該是LIFF WINDOW。<br>
+            LIFF WINDOW指的是使用者打開LINE之後，在聊天室透過LIFF URL所開啟的視窗。<br>
+            (LIFF URL= 以https://iiff.line.me/開頭的網址)。<br>
+            <span class="red">LIFF部分的功能，只能在LIFF WINDOW內執行，所以需要注意</span>
+        </li>
+        <li>
+            <strong>能與LINE LOGIN共存</strong><br>
+            這是蠻重要的一點。由於官方提供的範例，<br>
+            都是單單僅有LIFF靜態網頁操作，導致實作時，容易忽略<br>
+            可以並行LINE LOGIN和LIFF LOGIN這件事。<br>
+            基本上，整個運行原則應是：<br>
+            <span class="red">需要進行LIFF操作的頁面，由LIFF進行LOGIN的「動作」，</span><br>
+            並且，<span class="red">得到使用者資訊後，回傳給後端，</span><br>
+            <span class="red">後端再來進行「實質上的使用者登入」。</span><br>
+            這段流程，將會在後面提供程式碼示例。
+        </li>
+        <li>
+            <strong>客製化圖文LINE訊息</strong><br>
+            雖然說這是LIFF特色，但這圖文訊息結構很麻煩。<br>
+            <a href="https://developers.line.biz/flex-simulator/">LINE圖文訊息模擬器</a><br>
+            LIFF是少數能讓使用者發出LINE圖文的方式。
+        </li>
+        <li>
+            <strong>頻繁運用Promise</strong><br>
+            LIFF使用了非常多Javascript的Promise，<br>
+            如果要LIFF得心應手，要熟悉Promise
+        </li>
+    </ol>
+    <hr>
+    <h3>
+        設定LIFF時要注意的地方
+    </h3>
+    <ol>
+        <li>Endpoint URL可以帶get參數(固定)</li>
+    </ol>
+
+    <div class="mainbox">
+        有待驗證的：<br>
+        Endpoint URL是LIFF URL指向的網址，<br>
+        這是否意味著，可以指向系統商。<br>
+        讓系統商統一處理？<br>
+        是否代表著可以跨Provider處理
+    </div>
+
+    <h3>官方範例用Server：</h3>
+    <p>這次在寫筆記的時候，發現官方又新增了一些範例Server<br>
+        雖然LIFF本身是不需要Server就能運作，但要讓一般使用者拜訪，<br>
+        最終也必然需要一個公開domain</p>
+    <ol>
+        <li>
+            <a href="https://developers.line.biz/en/docs/liff/trying-liff-app/">Netlify + LIFF</a>
+            <p>Netlify是一個靜態網站託管的服務，本身和LINE是沒有相關隸屬關係的
+            </p>
+        </li>
+        <li>
+            <a href="https://elements.heroku.com/buttons/line/line-liff-starter">heroku</a>
+            <p>原本官方這邊範例server只有heroku，所以這範例算是我印象最舊的<br>
+                <span class="red">此範例有些效果會造成誤解，所以看看就好</span><br>
+                API本身的解說，最可靠的還是要看官方文件說明
+            </p>
+        </li>
+    </ol>
+    <hr>
+
+    <h3>LIFF 程式碼實作流程</h3>
+    <h4>第一步：引入APK</h4>
+    <pre>＜script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"＞＜/script＞</pre>
+    <div class="mainbox">
+        唯一要注意的是 這個引入的script 多了屬性charset="utf-8"
+    </div>
+    <h4>第二步：初始化LIFF</h4>
+    <pre>
+        官方文件長這樣：
+        liff.init({liffId: <span class="red">LIFF ID</span>})
+        .then(function(){ //呼叫其他function });
+
+        但實際上應用
+        1. 純javascript版本：
+        window.onload = function(){
+            liff.init({liffId: <span class="red">LIFF ID</span>})
+            .then(function(){
+                //呼叫其他function
+            })
+            .catch(function(err){})
+        }
+        2. jQuery版本：
+        $(function(){
+            liff.init({liffId: <span class="red">LIFF ID</span>})
+            .then(function(){
+                //呼叫其他function
+            })
+            .catch(function(err){})
+        })
+    </pre>
+    <div class="mainbox">
+        要注意的地方：<br>
+        liff.init()執行後，會強制跳轉到設定好的Endpoint URL。<br>
+        基本上LIFF很多地方是採JS的promise處理，<br>
+        但LIFF的錯誤訊息(也就是catch帶的第一個參數)，<br>
+        錯誤訊息給的常常很爛，所以建議不要拿LIFF錯誤訊息當debug指標。<br>
+        <br>
+        如果有用google analytics <br>
+        資訊安全起見，請在then才呼叫 ga('send' 'pageview')
+    </div>
+
+    <h4>使用者登入</h4>
+    <pre>
+        直覺上會這樣寫：
+        $(function(){
+            liff.init({liffId: LIFF ID})
+            .then(function(){
+                <span class="red">liff.login()</span>
+            })
+            .catch(function(err){})
+        })
+
+        然而！至少應該是這樣：
+        $(function(){
+            liff.init({liffId: <span class="red">LIFF ID</span>})
+            .then(function(){<span class="red">
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                }</span>
+                else {
+                    //呼叫其他function
+                }
+            })
+            .catch(function(err){})
+        })
+    </pre>
+    <div class="mainbox">
+        注意事項：<br>
+        1. liff的登入不是站台的登入 <br>
+        liff.login是「執行登入」，可以被無數次執行。<br>
+        如果初始化後，固定執行登入，那麼不管有沒有登入。<br>
+        畫面會一直被跳轉去LINE登入畫面。<br>
+        所以要先執行<span class="red">liff.isLoggedIn()</span>
+        判斷是否已經登入過。<br>
+        並且，<span class="red">登入不等於取得使用者資訊</span>
+        <br>
+        2. 使用者登入前，不可直接在當前網址帶參數
+        如果要在then後執行liff.login()讓使用者登入，<br>
+        LIFF為了資訊安全，登入後不會帶任何原先的參數回頁面，<br>
+        除非在liff.login內帶object參數，如：<br>
+        liff.login({<span class="red">redirectUri: "http://導向網址?參數=330"</span>})
+        <br>
+        3. 不同情況，要做不同判斷
+        因應不同瀏覽器，以及是否是LIFF WINDOW，<br>
+        (LIFF WINDOW：用LIFF URL在LINE APP內開啟的LIFF視窗)
+        執行liff.login前，需要判斷的東西可能就不一樣 <br>
+        比方有時候，希望某些頁面不需要使用者一開始就登入；<br>
+        比方有時候，希望LIFF WINDOW內直接登入，但其他地方就<br>
+        不需要讓使用者直接登入。
+        <p>或許會比login早執行的function</p>
+        <ol>
+            <li>liff.getOS()</li>
+            <li>liff.getVersion() => liff的版本</li>
+            <li>liff.getLineVersion()</li>
+            <li>liff.isInClient() =>是否是LIFF WINDOW</li>
+        </ol>
+    </div>
+    <h4>取得使用者資訊</h4>
+    <p>這邊官方網站提供三張流程圖，下方為了整體筆記，我圖片放很小，<br>
+        圖片檔案放在img資料夾內，需要可以去看</p>
+    <ul>
+        <li>第一種方式：直接呼叫function取得，以ID_TOKEN驗證使用者資訊後，存進資料庫
+            <br>
+            <img src="img/via_id_token.PNG" alt="">
+        </li>
+        <li>第二種方式：直接呼叫function取得，以ACCESS_TOKEN驗證使用者資訊後，存進資料庫
+            <br>
+            <img src="img/via_access_token.PNG" alt="">
+        </li>
+        <li>第三種方式：僅直接呼叫function<span class="red">// 使用者可能改寫自己資訊，故而不適合存進資料庫</span>
+            <br>
+            <img src="img/liff_app.PNG" alt="">
+        </li>
+    </ul>
+    <div class="mainbox">
+        有兩個function可以得到使用者資訊，<br>
+        liff.getDecodedIDToken()和liff.getProfile() <br>
+        <span class="red">前面的會直接回傳物件，後者是回傳Promise</span>
+        總結，得到使用者資訊之後，如果有儲存使用者的打算，<br>
+        官方建議，還是得先呼叫https://api.line.me/oauth2/v2.1/verify <br>
+        眼熟嗎？就是LINE LOGIN要取得使用者資訊那隻API，<br>
+        呼叫方式可以直接參考LINE LOGIN那個筆記html
+    </div>
+    <pre>
+        $(function(){
+            liff.init({liffId: LIFF ID})
+            .then(function(){
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                }
+                else {<span class="red">
+                    // token內包含使用者資訊
+                    let token = liff.getDecodedIDToken();
+                    
+                    liff.getProfile()
+                    .then(function(res){
+                        //這才是使用者資訊
+                        console.log(res)
+                    });</span>
+                }
+            })
+            .catch(function(err){})
+        })
+    </pre>
+</body>
+
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIFF預期與非預期行為</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
+    <!-- <link rel="stylesheet" href="../css/layout.css"> -->
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col">名詞說明</div>
+        </div>
+        <div class="row">
+            <div class="col-4">網址種類</div>
+            <div class="col-4">定義說明</div>
+        </div>
+        <div class="row">
+            <div class="col-4">LIFF URL</div>
+            <div class="col-4">在設定URL設定時，會看到https://iiff.line.me/加上liff id，所組成的網址，這是固定的網址，不能修改</div>
+        </div>
+        <div class="row">
+            <div class="col-4">Primary redirect URL（主跳轉URL）</div>
+            <div class="col-4">LIFF的唯一入口，作為init時，被定義的基本網址。也是一開始設定時，所設定的Endpoint(指向)網址，注意，設定的時候，是可以讓這網址帶參數的</div>
+            <div class="col-4">我稱為：LIFF基本網址</div>
+        </div>
+        <div class="row">
+            <div class="col-4">Secondary redirect URL（第二跳轉URL）</div>
+            <div class="col-4">基本上可以視為，在被定義的基本網址上，加上一些參數</div>
+            <div class="col-4">我稱為：LIFF參數網址</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="col fw-bold">不同種類之間的關係</div>
+        <div class="row">
+            <div class="col-4">
+                使用者點下<span class="text-primary">LINE URL</span>之後，
+                因為javascript會執行 liff.init()，所以會跳到
+                <span class="text-info">LINE基本網址</span>，再接下來，
+                因為使用者的操作(點了網頁上某個東西)，會進到
+                <span class="text-warning">LINE參數網址</span>
+            </div>
+            <div class="col-4">
+                使用者點下<span class="text-primary">https://iiff.line.me/我的ID</span>之後，
+                因為javascript會執行 liff.init()，所以會跳到
+                <span class="text-info">https:://我的網站.com</span>，再接下來，
+                因為使用者的操作(點了網頁上某個東西)，會進到
+                <span class="text-warning">https:://我的網站.com/homepage?user=20</span>
+            </div>
+        </div>
+        <div class="row">
+            最新的SDK，是可以允許兩個liff app間 在liff window尚未關閉前 可以互相跳轉的
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大量產生LIFF</title>
+    <link rel="stylesheet" href="../css/layout.css">
+</head>
+
+<body>
+    <h1>大量產生LIFF ID</h1>
+    <h2>說明：一次性增加多個LIFF ID(同個Channel底下)</h2>
+    <h4>LINE提供了產生LIFF ID的API，透過呼叫API，可以直接產生多個LIFF ID（每次新增上限為30個）</h4>
+    <h4>這個API主要是LIFF version 1 的時候建立的，所以官方文件還保留Message API建LIFF ID圖片</h4>
+
+    <h3>官方說明文件 <a href="https://developers.line.biz/en/reference/liff-server/#add-liff-app">點我</a></h3>
+    <hr>
+    <h3>流程</h3>
+    <h4>第一步：取得channel的access token</h4>
+    <pre>
+        * method: POST
+        * url: https://api.line.me/v2/oauth/accessToken
+        * required:
+        //標頭部分
+        1. Content-Type
+        //body部分
+        2. grant_type
+        3. client_id
+        4. client_secret</pre>
+    <div class="mainbox">
+        文件內有提到 Message API的token，但其實那是第一版的時候才能使用，<br>
+        但現在如果在使用liff的SDK的時候，應該都要用最新的，所以就把Message API token的說明<br>
+        先放到一邊去。<br>
+        這邊文件有特別標明，data要以data-urlencode傳送，<br>
+        以下範例，是以javascript的fetch(幾乎相當於javascript內建的ajax)所寫<br>
+        body其實就是ajax的data部分。<br>
+        <br>
+        (算是順便練習fetch)<br>
+
+    </div>
+
+    <pre>
+        let details = {
+            grant_type: 'client_credentials',
+            <span class="red">// LINE LOGIN API的ID</span>
+            client_id: 'API CLIENT ID',
+            <span class="red">// LINE LOGIN API的SECRET</span>
+            client_secret: 'API CLIENT SECRET'
+        }
+
+        let r = fetch('https://api.line.me/v2/oauth/accessToken', {
+            method: 'POST',
+            body: new URLSearchParams(details),
+            headers: new Headers({
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+            })
+        })
+            .then(function (response) {
+                <span class="red">// fetch需要把response先轉json</span>
+                let aPromise = response.json();
+                <span class="red">// 轉完之後的東西是個promise，所以需要再用then去取得資料</span>
+                aPromise.then(function(res){console.log(res)})
+            })
+            .catch(function (err) {
+                console.log(err)
+            })</pre>
+        <div class="mainbox">
+            取得access token之後
+        </div>
+        <h4>呼叫建立LIFF的API</h4>
+        <pre>
+            * method: POST
+            * url: https://api.line.me/liff/v1/apps
+            * required:
+            //標頭部分
+            1. Content-Type
+            2. Authorization
+            //body部分
+            3. 設定檔(格式為json)
+            //設定檔範例
+            {
+                "view": {
+                    "type": "full",
+                    "url": "https://example.com/myservice"
+                },
+                "description": "Service Example",
+                "features": {
+                    "ble": true
+                },
+                "permanentLinkPattern": "concat"
+            }'
+
+        </pre>
+        <div class="mainbox">
+            Content-Type 這邊要求的是 application/json <br>
+            意思是body帶過去的必須是json格式<br>
+            Authorization 則是要帶Bearer 加上剛剛的access token <br>
+            Bearer和access token中間要有一個半形空格<br>
+            但不用像是LINE官方文件有{} <br>
+            舉例: Authorization: Bearer ABCEDDFDFDF <br>
+            設定檔的部分就是json，所以我就不多寫了 <br>
+            直接看官方文件說明即可
+        </div>
+</body>
+
+</html>
